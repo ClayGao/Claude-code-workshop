@@ -23,10 +23,35 @@ date: "2024-07-04"
 claude -p "你的提示內容"
 
 # 指定輸出格式
-claude -p "分析程式碼" --output-format stream-json
+claude -p "分析程式碼" --output-format json
+```
 
-# 設定工具白名單
-claude -p "執行測試" --allowed-tools read,bash
+===
+
+Output:
+
+```json
+{
+  "type": "result",
+  "subtype": "success",
+  "is_error": false,
+  "duration_ms": 38549,
+  "duration_api_ms": 37885,
+  "num_turns": 20,
+  "result": "## 技術棧與架構\n\n**技術棧：**\n- React 18 + TypeScript + Vite\n- Tailwind CSS + SCSS\n- Zustand 狀態管理\n- React Router v6\n- SWR 數據獲取\n- Storybook 組件開發\n- Vitest 測試框架\n\n**架構模式：**\n- **Container/Component 分離**：\n  - Components 只處理 UI 邏輯\n  - Containers 負責數據獲取與處理\n- **模塊化設計**：使用 lazy loading 優化性能\n- **Hook 驅動**：大量使用自定義 hooks 封裝業務邏輯\n\n## 主要功能模塊\n\n1. **用戶認證系統**\n   - 支持多平台登錄（Shopify、Apple ID、OAuth）\n   - 多區域商店支持（US、EU、JP等）\n   - 密碼重置、郵箱驗證流程\n\n2. **用戶中心功能**\n   - 帳戶概覽、個人資料編輯\n   - 產品註冊、設備管理\n   - 軟件授權管理\n   - 訂單查詢與詳情\n\n3. **Positive Access 會員系統**（最新開發）\n   - 積分管理與轉移\n   - 多商店積分整合\n   - 獎勵歷史記錄\n   - 商店切換功能\n\n4. **消息系統**\n   - 集成 Zendesk 客服記錄\n   - 用戶與客服溝通歷史\n\n## 項目特色\n\n**多環境支持：**\n- Sandbox、Dev、Production 環境\n- 多區域商店配置\n- 動態環境變量處理\n\n**用戶體驗優化：**\n- 響應式設計（mobile-first）\n- 組件懶加載\n- 全局加載狀態管理\n- 錯誤邊界處理\n\n**開發工程化：**\n- TypeScript 強類型\n- ESLint + Prettier 代碼規範\n- Husky + lint-staged 提交檢查\n- Plop 代碼生成器\n\n## 代碼品質評估\n\n**優點：**\n- 架構清晰，職責分離明確\n- 組件復用性高，有 Storybook 支持\n- 完整的開發工具鏈\n- 良好的錯誤處理機制\n\n**可優化點：**\n- 部分組件可進一步細化\n- 測試覆蓋率可以提升\n- 某些長文件可考慮拆分\n\n總體而言，這是一個結構良好、技術棧現代化的 React 應用程序，適合持續維護和功能擴展。",
+  "session_id": "be82b95c-a660-4562-8e4d-73ac6e9d1879",
+  "total_cost_usd": 0.23685060000000002,
+  "usage": {
+    "input_tokens": 28,
+    "cache_creation_input_tokens": 48494,
+    "cache_read_input_tokens": 111947,
+    "output_tokens": 1422,
+    "server_tool_use": {
+      "web_search_requests": 0
+    },
+    "service_tier": "standard"
+  }
+}
 ```
 
 ===
@@ -109,74 +134,6 @@ claude-analysis:
     reports:
       junit: analysis-report.xml
 ```
-
-===
-
-# 自動化腳本應用
-
-## 部署前檢查腳本
-```bash
-#!/bin/bash
-# deploy-check.sh
-
-echo "🚀 執行部署前檢查..."
-
-# 執行 Claude Code 分析
-ANALYSIS_RESULT=$(claude -p "執行部署前完整檢查：
-
-1. 確認所有測試通過
-2. 檢查建構是否成功
-3. 驗證環境變數設定
-4. 檢查資料庫遷移腳本
-5. 確認安全性設定
-6. 評估效能影響
-
-如果所有檢查通過，回應 'DEPLOY_READY'。
-如果有問題，詳細說明問題並回應 'DEPLOY_BLOCKED'。" \
---output-format text)
-
-echo "Claude 分析結果: $ANALYSIS_RESULT"
-
-# 檢查結果並決定是否繼續部署
-if [[ "$ANALYSIS_RESULT" == *"DEPLOY_READY"* ]]; then
-    echo "✅ 部署檢查通過，開始部署..."
-    ./deploy.sh
-else
-    echo "❌ 部署檢查失敗，部署已取消"
-    echo "$ANALYSIS_RESULT"
-    exit 1
-fi
-```
-
-## 程式碼品質監控
-```bash
-#!/bin/bash
-# quality-monitor.sh
-
-# 每日程式碼品質檢查
-DATE=$(date +%Y-%m-%d)
-REPORT_FILE="quality-report-$DATE.md"
-
-claude -p "執行每日程式碼品質檢查：
-
-1. 分析最近 24 小時的 commits
-2. 檢查程式碼複雜度趨勢
-3. 評估技術債務變化
-4. 識別需要重構的區域
-5. 產生改善建議
-
-請產生 Markdown 格式的詳細報告。" \
---output-format text > "$REPORT_FILE"
-
-# 如果發現嚴重問題，發送通知
-if grep -q "嚴重" "$REPORT_FILE"; then
-    # 發送 Slack 通知
-    curl -X POST -H 'Content-type: application/json' \
-        --data "{\"text\":\"⚠️ 程式碼品質檢查發現嚴重問題，請查看 $REPORT_FILE\"}" \
-        "$SLACK_WEBHOOK_URL"
-fi
-```
-
 ===
 
 # 大規模自動化應用
@@ -265,79 +222,4 @@ claude -p "簡單查詢" --output-format text
 
 # 結構化輸出
 claude -p "產生報告" --output-format structured
-```
-
-## 工具權限控制
-```bash
-# 只允許讀取檔案
-claude -p "分析程式碼" --allowed-tools read
-
-# 允許讀取和 bash 執行
-claude -p "執行測試" --allowed-tools read,bash
-
-# 允許所有工具 (預設)
-claude -p "完整開發任務" --allowed-tools all
-
-# 禁用特定工具
-claude -p "安全分析" --denied-tools edit,write
-```
-
-## 效能和資源控制
-```bash
-# 設定超時時間
-claude -p "長時間分析" --timeout 300
-
-# 設定記憶體限制
-claude -p "大型專案分析" --memory-limit 2G
-
-# 設定並發限制
-claude -p "批量處理" --max-concurrent 3
-```
-
-===
-
-# 最佳實踐
-
-## ✅ 有效的自動化模式
-
-### 錯誤處理
-```bash
-# robust 錯誤處理
-if ! claude -p "執行檢查" --timeout 60; then
-    echo "Claude 執行失敗，使用備用方案"
-    fallback_check
-    exit 1
-fi
-```
-
-### 日誌記錄
-```bash
-# 完整的日誌記錄
-LOG_FILE="claude-automation-$(date +%Y%m%d).log"
-
-{
-    echo "開始時間: $(date)"
-    claude -p "執行自動化任務" 2>&1
-    echo "結束時間: $(date)"
-} >> "$LOG_FILE"
-```
-
-### 資源清理
-```bash
-# 自動清理暫存檔案
-trap 'rm -f /tmp/claude-*' EXIT
-
-claude -p "處理大型檔案" --temp-dir /tmp
-```
-
-## 🔒 安全性考量
-```bash
-# API Key 安全管理
-export ANTHROPIC_API_KEY=$(vault read -field=api_key secret/claude)
-
-# 限制檔案存取範圍
-claude -p "分析專案" --sandbox-path /project/src
-
-# 稽核記錄
-claude -p "敏感操作" --audit-log /var/log/claude-audit.log
 ```

@@ -1,338 +1,333 @@
 ---
-title: "Hooks 自動化機制"
-description: "設定自動化觸發的工作流程"
+title: "Claude Code Hooks 自動化機制"
+description: "使用 Hooks 建立智能化的工作流程自動化"
 author: "Workshop Instructor"
 date: "2024-07-04"
 ---
 
-# Hooks 自動化機制
+# Claude Code Hooks 🪝
 
-Claude Code 支援 hooks 機制，讓你設定在特定事件發生時自動執行的指令。
+**用戶自定義的 shell 指令，在 Claude Code 生命週期的特定時刻自動執行**
 
-## 🔗 什麼是 Hooks？
+## 🎯 核心概念
 
-### 核心概念
-- **事件觸發**: 特定動作發生時自動執行
-- **無縫整合**: 與現有工作流程結合
-- **可自訂**: 根據團隊需求設定
-- **提升效率**: 減少重複手動操作
+### 什麼是 Hooks？
+- **事件觸發器**: 在特定事件發生時自動執行
+- **工作流程自動化**: 無縫整合到開發流程中
+- **智能決策**: 可控制工具執行和提供反饋
+- **完全可定制**: 根據團隊需求靈活配置
 
-### 常見觸發事件
-- 檔案變更時
-- Git 操作前後
-- 測試執行時
-- 部署流程中
+### 主要用途
+- 📢 **通知系統**: 自動發送狀態更新
+- 🎨 **程式碼格式化**: 自動美化和修正程式碼
+- 📊 **日誌追蹤**: 記錄操作和決策過程
+- 🛡️ **安全檢查**: 自動化安全審查
+- 🔐 **權限控制**: 自定義存取控制邏輯
 
 ===
 
-# Hooks 設定方式
+# Hook 事件類型
 
-## 全域 Hooks 設定
+## 五大核心事件
+
+### 🛠️ PreToolUse
 ```json
-// ~/.claude/config.json
 {
   "hooks": {
-    "pre-commit": {
-      "command": "claude -p '請檢查這次 commit 的程式碼品質'",
-      "enabled": true
-    },
-    "post-commit": {
-      "command": "claude -p '請更新 CHANGELOG.md'",
-      "enabled": true
-    },
-    "file-change": {
-      "command": "claude -p '檢查修改的檔案是否影響其他模組'",
-      "patterns": ["src/**/*.js", "src/**/*.ts"],
-      "enabled": false
-    }
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '即將執行 Bash 指令: $TOOL_INPUT'"
+          }
+        ]
+      }
+    ]
   }
 }
 ```
 
-## 專案特定 Hooks
+### ✅ PostToolUse
+- **觸發時機**: 工具完成後
+- **用途**: 日誌記錄、結果驗證、後續處理
+
+### 🔔 Notification
+- **觸發時機**: Claude 發送通知時
+- **用途**: 自定義通知渠道、訊息轉發
+
+### 🏁 Stop
+- **觸發時機**: 主代理完成任務時
+- **用途**: 清理工作、結果彙總
+
+### 🤖 SubagentStop
+- **觸發時機**: 子代理完成時
+- **用途**: 子任務結果處理、狀態同步
+
+===
+
+# Hook 配置架構
+
+## 基本結構
 ```json
-// .claude/hooks.json
 {
   "hooks": {
-    "test-failure": {
-      "command": "claude -p '分析測試失敗原因並提供修復建議'",
-      "enabled": true
-    },
-    "build-error": {
-      "command": "claude -p '分析建構錯誤並嘗試自動修復'",
-      "enabled": true
-    },
-    "deploy-ready": {
-      "command": "claude -p '執行部署前安全檢查'",
-      "enabled": true
-    }
+    "EventName": [
+      {
+        "matcher": "ToolPattern",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "your-command-here"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## 實際範例
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command", 
+            "command": "echo '正在寫入檔案...'"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "logger '完成 Bash 指令執行'"
+          }
+        ]
+      }
+    ]
   }
 }
 ```
 
 ===
 
-# Git Hooks 整合
+# Hook 輸入輸出
 
-## Pre-commit Hook
+## 輸入格式
+Hook 接收包含會話和事件資料的 JSON：
+```json
+{
+  "session": {
+    "id": "session_123",
+    "timestamp": "2024-07-04T10:00:00Z"
+  },
+  "event": {
+    "type": "PreToolUse",
+    "tool": "Bash",
+    "input": "ls -la"
+  }
+}
+```
+
+## 輸出控制
+### 1. 退出碼控制
+```bash
+# 允許執行
+exit 0
+
+# 阻止執行
+exit 1
+```
+
+### 2. JSON 結構化回應
+```json
+{
+  "allow": true,
+  "feedback": "檢查完成，可以執行",
+  "metadata": {
+    "checked_at": "2024-07-04T10:00:00Z"
+  }
+}
+```
+
+===
+
+# 實用範例
+
+## 程式碼格式化 Hook
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "prettier --write $FILE_PATH"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## 安全檢查 Hook
 ```bash
 #!/bin/bash
-# .git/hooks/pre-commit
+# security-check.sh
 
-echo "🤖 Claude Code 程式碼檢查..."
+echo "🔍 執行安全檢查..."
 
-# 啟動 Claude Code 進行檢查
-claude -p "請檢查這次 commit 的變更：
+# 檢查敏感資料
+if grep -r "password\\|secret\\|api_key" "$1"; then
+    echo "❌ 發現敏感資料，阻止執行"
+    exit 1
+fi
 
-1. 程式碼品質和風格
-2. 潛在的錯誤或問題
-3. 安全性檢查
-4. 效能影響評估
+echo "✅ 安全檢查通過"
+exit 0
+```
 
-如果發現問題，請提供修復建議。
-如果一切正常，回應 'COMMIT_OK'。"
+## 日誌記錄 Hook
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '$(date): 執行了 $TOOL_NAME 工具' >> activity.log"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
 
-# 檢查 Claude 的回應
-if [[ $? -eq 0 ]]; then
-    echo "✅ 程式碼檢查通過"
-    exit 0
+===
+
+# 高級功能
+
+## MCP 工具整合
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "validate-mcp-tool.sh $TOOL_NAME"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## 條件式執行
+```bash
+#!/bin/bash
+# conditional-hook.sh
+
+# 只在工作時間執行
+HOUR=$(date +%H)
+if [[ $HOUR -ge 9 && $HOUR -le 18 ]]; then
+    echo "工作時間，執行完整檢查"
+    full-check.sh
 else
-    echo "❌ 程式碼檢查發現問題，請修復後再次提交"
+    echo "非工作時間，執行快速檢查"
+    quick-check.sh
+fi
+```
+
+## 配置層級
+1. **用戶全域**: `~/.claude/config.json`
+2. **專案特定**: `.claude/config.json`
+3. **環境變數**: `CLAUDE_HOOKS_CONFIG`
+
+===
+
+# 安全考量 🔒
+
+## 主要風險
+- **完整用戶權限**: Hooks 以用戶身份執行
+- **資料洩露**: 可能存取敏感檔案
+- **系統損壞**: 錯誤指令可能造成損害
+
+## 安全最佳實踐
+
+### 1. 輸入驗證
+```bash
+# 驗證輸入參數
+if [[ -z "$1" || "$1" =~ [^a-zA-Z0-9._/-] ]]; then
+    echo "無效的輸入參數"
     exit 1
 fi
 ```
 
-## Post-commit Hook
+### 2. 使用絕對路徑
 ```bash
-#!/bin/bash
-# .git/hooks/post-commit
+# 好的做法
+/usr/bin/git status
 
-# 取得最新 commit 資訊
-COMMIT_MSG=$(git log -1 --pretty=%B)
-CHANGED_FILES=$(git diff --name-only HEAD~1)
-
-claude -p "剛完成一次 commit：
-
-Commit 訊息: $COMMIT_MSG
-修改檔案: $CHANGED_FILES
-
-請執行以下任務：
-1. 檢查是否需要更新文檔
-2. 評估是否影響其他模組
-3. 建議後續測試重點
-4. 更新相關的 TODO 和 issue
-
-請產生簡潔的報告。"
+# 避免這樣
+git status
 ```
 
-===
-
-# CI/CD Pipeline Hooks
-
-## GitHub Actions 整合
-```yaml
-# .github/workflows/claude-review.yml
-name: Claude Code Review
-
-on:
-  pull_request:
-    types: [opened, synchronize]
-
-jobs:
-  claude-review:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Claude Code Analysis
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          claude -p "請分析這個 PR 的變更：
-          
-          1. 程式碼品質評估
-          2. 安全性檢查
-          3. 效能影響分析
-          4. 測試覆蓋率檢查
-          5. 文檔更新需求
-          
-          請產生詳細的 PR 審查報告。"
-          
-      - name: Comment PR
-        uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '🤖 Claude Code 審查報告已產生'
-            })
-```
-
-## 自動化測試 Hook
+### 3. 引號保護
 ```bash
-# tests/hooks/pre-test.sh
-#!/bin/bash
+# 正確的變數使用
+echo "檔案路徑: '$FILE_PATH'"
 
-echo "🧪 執行測試前檢查..."
-
-claude -p "即將執行測試套件。請檢查：
-
-1. 測試環境設定是否正確
-2. 必要的測試資料是否準備完成
-3. 相關服務是否正常運行
-4. 預期的測試範圍和重點
-
-如果發現問題請提供解決方案。
-如果一切正常，回應 'TEST_READY'。"
+# 避免
+echo "檔案路徑: $FILE_PATH"
 ```
 
-===
-
-# 專案管理 Hooks
-
-## Issue 自動分析
-```json
-{
-  "hooks": {
-    "issue-created": {
-      "trigger": "github-webhook",
-      "command": "claude -p '新的 issue 已建立：{{issue.title}}\\n\\n{{issue.body}}\\n\\n請分析這個問題並：\\n1. 評估優先級和複雜度\\n2. 建議適合的標籤\\n3. 估算所需時間\\n4. 識別相關的程式碼模組'",
-      "enabled": true
-    }
-  }
-}
-```
-
-## 自動程式碼審查
-```json
-{
-  "hooks": {
-    "pr-opened": {
-      "trigger": "github-webhook", 
-      "command": "claude -p '請審查這個 PR：\\n\\n變更摘要：{{pr.title}}\\n描述：{{pr.body}}\\n\\n重點檢查：\\n- 程式碼品質\\n- 安全性問題\\n- 效能影響\\n- 測試完整性\\n\\n請提供建設性的審查意見。'",
-      "enabled": true
-    }
-  }
-}
-```
-
-===
-
-# 開發環境 Hooks
-
-## 檔案監控 Hook
-```bash
-# 監控重要檔案變更
-fswatch src/ | while read file; do
-    echo "檔案變更: $file"
-    
-    claude -p "檔案 $file 已修改。請檢查：
-    
-    1. 語法是否正確
-    2. 是否符合編碼規範  
-    3. 是否影響其他相依檔案
-    4. 是否需要更新測試
-    
-    如果發現問題請立即報告。"
-done
-```
-
-## 依賴更新 Hook
-```json
-{
-  "hooks": {
-    "package-updated": {
-      "trigger": "file-change",
-      "patterns": ["package.json", "package-lock.json"],
-      "command": "claude -p '套件依賴已更新。請檢查：\\n1. 新版本的重大變更\\n2. 安全漏洞掃描\\n3. 相容性問題\\n4. 效能影響評估\\n\\n請提供升級建議和注意事項。'",
-      "enabled": true
-    }
-  }
-}
-```
-
-===
-
-# Hook 管理最佳實踐
-
-## ✅ 建議做法
-
-### Hook 效能優化
-```json
-{
-  "hooks": {
-    "lightweight-check": {
-      "command": "claude -p --max-tokens 200 '快速檢查語法錯誤'",
-      "timeout": 30,
-      "enabled": true
-    },
-    "detailed-analysis": {
-      "command": "claude -p '詳細分析程式碼品質'",
-      "timeout": 120,
-      "manual-trigger": true
-    }
-  }
-}
-```
-
-### 條件式執行
-```bash
-# 只在工作時間執行
-if [[ $(date +%H) -ge 9 && $(date +%H) -le 18 ]]; then
-    claude -p "執行程式碼審查..."
-fi
-
-# 只在特定分支執行
-BRANCH=$(git branch --show-current)
-if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" ]]; then
-    claude -p "執行安全性檢查..."
-fi
-```
-
-===
-
-# 故障排除
-
-## Hook 除錯
-```bash
-# 檢查 hook 狀態
-claude hooks status
-
-# 測試 hook 執行
-claude hooks test pre-commit
-
-# 檢視 hook 日誌
-claude hooks logs --since "1 hour ago"
-```
-
-## 效能監控
-```json
-{
-  "hooks": {
-    "monitoring": {
-      "log-execution-time": true,
-      "max-execution-time": 60,
-      "retry-on-failure": 2,
-      "notification-on-slow": true
-    }
-  }
-}
-```
-
-## 安全考量
+### 4. 權限最小化
 ```json
 {
   "hooks": {
     "security": {
-      "allowed-commands": ["claude"],
-      "sandbox-mode": true,
-      "api-key-validation": true,
-      "rate-limiting": {
-        "max-calls-per-minute": 10
-      }
+      "allowed_commands": ["/usr/bin/git", "/usr/bin/npm"],
+      "blocked_paths": ["/etc", "/var/log"]
     }
   }
 }
 ```
+
+===
+
+# 最佳實踐總結
+
+## ✅ 建議做法
+- **漸進式部署**: 先在測試環境驗證
+- **詳細日誌**: 記錄所有 Hook 執行
+- **錯誤處理**: 優雅處理失敗情況
+- **效能監控**: 避免過長的執行時間
+- **定期審查**: 檢查 Hook 的必要性
+
+## ❌ 避免事項
+- 不要在 Hook 中執行長時間操作
+- 避免在關鍵路徑中使用不穩定的 Hook
+- 不要忽略錯誤處理
+- 避免硬編碼敏感資訊
+
+## 🎯 Hook 讓 Claude Code 更智能
+**透過自動化減少重複工作，讓 AI 助手更符合你的工作流程！**

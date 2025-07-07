@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /Users/claygao/Documents/claude-code-workshop/public/cat.wav"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "afplay /Users/claygao/Documents/claude-code-workshop/public/cat.wav"
+          }
+        ]
+      }
+    ]
+  }
+}

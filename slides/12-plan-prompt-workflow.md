@@ -1,5 +1,5 @@
 ---
-title: "Plan Prompt 工作流程"
+title: "💡 Plan Prompt 工作流程"
 description: "標準化的開發流程最佳實踐"
 author: "Workshop Instructor"
 date: "2024-07-04"

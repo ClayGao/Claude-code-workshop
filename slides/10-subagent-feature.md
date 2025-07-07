@@ -228,3 +228,9 @@ Queued tasks (2):
 ```
 
 > 💡 **核心建議**：除非需要限制任務執行，否則讓 Claude Code 自動決定並行數量
+
+===
+
+# 參考資料
+
+來自 https://cuong.io/blog/2025/06/24-claude-code-subagent-deep-dive
