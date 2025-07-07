@@ -1,6 +1,6 @@
 ---
 title: "認識 Claude Code"
-description: "AI 驅動的終端編程助手"
+description: "AI 驅動的終端助手"
 author: "Workshop Instructor"
 date: "2024-07-04"
 ---
@@ -10,7 +10,9 @@ date: "2024-07-04"
 ## 介紹
 Claude Code 是 Anthropic 推出的 **終端原生 AI coding 工具**，讓 AI 直接在你的開發環境中工作。始於 **Anthropic** 的一個 **內部項目**
 
-(以下內容來自 Boris 演講逐字稿：https://claude.ai/public/artifacts/5bc0baa9-5f08-4bb5-905f-b42ff60afd72)
+(這次簡報部分內容以下內容來自 Boris 演講逐字稿：https://claude.ai/public/artifacts/5bc0baa9-5f08-4bb5-905f-b42ff60afd72)
+
+版本: v1.0.43
 
 ## 即問即答
 Claude Code 和 Cursor 有一個根本不同，就是它不做程式碼的索引，所以在開始前不會把程式碼丟到某個遠端資料庫
