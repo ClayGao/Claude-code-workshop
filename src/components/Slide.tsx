@@ -14,6 +14,12 @@ interface SlideProps {
   isActive: boolean;
 }
 
+interface CodeComponentProps {
+  inline?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+}
+
 export default function Slide({ slide, index, isActive }: SlideProps) {
   return (
     <div
@@ -35,7 +41,7 @@ export default function Slide({ slide, index, isActive }: SlideProps) {
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw]}
           components={{
-            code: ({ inline, className, children, ...props }: any) => {
+            code: ({ inline, className, children, ...props }: CodeComponentProps) => {
               const match = /language-(\w+)/.exec(className || '');
               
               if (!inline && match) {
@@ -115,6 +121,7 @@ export default function Slide({ slide, index, isActive }: SlideProps) {
               // Return a div wrapper instead of figure to avoid nesting inside p tags
               return (
                 <span className="block my-6 flex flex-col items-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={src}
                     alt={alt || 'Image'}

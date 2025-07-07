@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Highlight, themes } from 'prism-react-renderer';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface CodeBlockProps {
